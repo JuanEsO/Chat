@@ -1,13 +1,15 @@
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {Image, TouchableOpacity, View, Text, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {formatDate} from '../../utils/Dates';
+import {ChatRoom, User} from '../../types/entities';
+import {Auth} from 'aws-amplify';
 
-const user = {
-  id: 'u1',
-  name: 'Vadim',
-  image: 'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/1.jpg',
-};
+// const user = {
+//   id: 'u1',
+//   name: 'Vadim',
+//   image: 'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/1.jpg',
+// };
 
 const chatRoom = {
   name: 'Vadim',
@@ -18,31 +20,36 @@ const chatRoom = {
   },
 };
 
-function ChatListItem() {
+function ChatListItem({chatData}: {chatData: ChatRoom}) {
   const navigation = useNavigation();
+  const user = chatData?.user;
+
   return (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate('Chat', {id: 'chatRoom.id', name: 'user?.name'})
+        navigation.navigate('Chat', {id: chatData.id, name: user?.email ?? ''})
       }
       style={styles.container}>
-      <Image source={{uri: user?.image}} style={styles.image} />
+      <Image
+        source={require('../../../assets/avatarDefault.png')}
+        style={styles.image}
+      />
 
       <View style={styles.content}>
         <View style={styles.row}>
           <Text style={styles.name} numberOfLines={1}>
-            {chatRoom.name || user?.name}
+            {user?.email}
           </Text>
 
-          {chatRoom.LastMessage && (
+          {chatData?.lastMessage && (
             <Text style={styles.subTitle}>
-              {formatDate(new Date(chatRoom.LastMessage?.createdAt))}
+              {formatDate(new Date(chatData.lastMessage?.createdAt))}
             </Text>
           )}
         </View>
 
         <Text numberOfLines={2} style={styles.subTitle}>
-          {chatRoom.LastMessage?.content}
+          {chatData.lastMessage?.text ?? 'No messages yet'}
         </Text>
       </View>
     </TouchableOpacity>

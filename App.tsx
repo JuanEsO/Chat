@@ -5,53 +5,32 @@
  * @format
  */
 
-import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import ChatScreen from './src/Screens/Chat';
-import ChatListScreen from './src/Screens/ChatList';
-import { NavigationContainer } from '@react-navigation/native';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
-import { NavigationManager } from './src/Navigation/NavigationManager';
+import React, {useEffect} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {NavigationManager} from './src/Navigation/NavigationManager';
+import {Amplify} from 'aws-amplify';
+import awsconfig from './src/aws-exports';
+import {withAuthenticator} from 'aws-amplify-react-native';
+import {syncUser} from './src/Services/UserService/User';
+import AppWrapper from './src/lib/LocalDbManager/AppWrapper';
+import Realm from 'realm';
+import ServiceLayer from './src/Services/ServiceLayer';
+
+Amplify.configure({...awsconfig, Analytics: {disabled: true}});
 
 function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  useEffect(() => {
+    syncUser();
+    Realm.open({path: 'teral.realm'}).then(db => {
+      console.log('[realm]', db, db.path);
+    });
+  }, []);
 
   return (
-    <NavigationContainer>
-      <NavigationManager />
-    </NavigationContainer>
+    <AppWrapper>
+      <ServiceLayer />
+    </AppWrapper>
   );
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+export default withAuthenticator(App);
